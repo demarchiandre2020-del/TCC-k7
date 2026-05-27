@@ -54,6 +54,10 @@ html, body {
     background-color: #6c63ff;
 }
 
+#login-box button:hover {
+    background-color: #ff9500;
+}
+
 #login-box .btn-success {
     background-color: #192a6b;
     border: none;
