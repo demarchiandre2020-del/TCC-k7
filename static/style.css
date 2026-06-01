@@ -40,7 +40,7 @@ html, body {
 }
 #login-box {
     font-family: "Courier New", Courier, monospace;
-    color: #d68b01;
+    color: #ff9500;
     width: 300px;
 
 }
@@ -75,3 +75,16 @@ html, body {
     margin: 0 auto 20px;    
     width: 350px;
 }
+
+#botao_usu_adm{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -5px;
+}
+
+/*////////////////////////////////////////////////////////////////////////////*/
+/*TABELA SQL*/
+
+
