@@ -9,7 +9,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Configure logging
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ def index():
             return render_template("index.html", data=data, error="Database connection failed")
         
         cursor = connection.cursor(dictionary=True)
-        # Replace 'items' with your actual table name
+      
         cursor.execute("SELECT * FROM items")
         data = cursor.fetchall()
         cursor.close()
