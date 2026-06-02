@@ -6,7 +6,7 @@ CREATE TABLE estoque(
 	nome VARCHAR(32) NOT NULL,
 	quantidade INT,
 	categoria VARCHAR(24) NOT NULL,
-	descrição VARCHAR(64) NOT NULL,
+	descricao VARCHAR(64) NOT NULL,
     PRIMARY KEY (`id`)
 	);
 
