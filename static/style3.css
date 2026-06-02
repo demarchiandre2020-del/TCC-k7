@@ -1,0 +1,108 @@
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* FUNDO */
+body {
+    background: linear-gradient(135deg, #e3f2fd, #f8f9fa);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* NAVBAR */
+.navbar {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.nav-link {
+    transition: 0.3s;
+}
+
+.nav-link:hover {
+    color: #ffd54f !important;
+}
+
+/* CENTRALIZAÇÃO */
+#elemento {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+/* CARD */
+#card {
+    width: 90%;
+    max-width: 900px;
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* TÍTULO */
+#titulo {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: bold;
+    color: #0d6efd;
+}
+
+/* BOTÃO */
+#acoes {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+
+/* TABELA */
+#tabela {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#tabela thead {
+    background-color: #0d6efd;
+    color: white;
+}
+
+#tabela tbody tr {
+    transition: 0.2s;
+}
+
+#tabela tbody tr:hover {
+    background-color: #e3f2fd;
+    transform: scale(1.01);
+}
+
+/* MODAL */
+.modal-content {
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.modal-title {
+    font-weight: bold;
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+    #card {
+        padding: 15px;
+    }
+
+    #titulo {
+        font-size: 1.2rem;
+    }
+}
