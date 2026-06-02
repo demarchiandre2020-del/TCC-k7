@@ -1,14 +1,16 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request, jsonify, session
 import mysql.connector as mysql
 from mysql.connector import Error
 import os
 from dotenv import load_dotenv
 import logging
+from datetime import timedelta
 
 load_dotenv()
 
-app = Flask(__name__)
-
+app = Flask(__name__, template_folder='template')
+app.secret_key = os.getenv("SECRET_KEY", "dev-key-change-in-production")
+app.permanent_session_lifetime = timedelta(hours=24)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,17 +38,101 @@ def get_db_connection():
 @app.route("/")
 def index():
     """
-    Index route - redirects to cadastrar page
+    Index route - shows login page
     """
-    return redirect(url_for("cadastrar"))
+    if 'email' in session:
+        return redirect(url_for("estoque"))
+    return render_template("index.html")
 
 
 @app.route("/cadastrar")
 def cadastrar():
     """
-    Cadastrar route - main screen for registration
+    Cadastrar route - registration page
     """
     return render_template("cadastrar.html")
+
+
+@app.route("/api/login", methods=["POST"])
+def login():
+    """
+    API endpoint for login
+    """
+    try:
+        data = request.get_json()
+        email = data.get("email", "").strip()
+        password = data.get("password", "").strip()
+        
+        if not email or not password:
+            return jsonify({"error": "Email and password required"}), 400
+        
+        connection = get_db_connection()
+        if connection is None:
+            return jsonify({"error": "Database connection failed"}), 500
+        
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM usuarios WHERE email = %s AND senha = %s", (email, password))
+        user = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        
+        if user:
+            session['email'] = email
+            session['permisao'] = user['permisao']
+            session.permanent = True
+            return jsonify({"success": True}), 200
+        else:
+            return jsonify({"error": "Invalid email or password"}), 401
+            
+    except Exception as e:
+        logger.error(f"Login error: {e}")
+        return jsonify({"error": "Server error"}), 500
+
+
+@app.route("/api/register", methods=["POST"])
+def register():
+    """
+    API endpoint for user registration
+    """
+    try:
+        data = request.get_json()
+        nome = data.get("nome", "").strip()
+        email = data.get("email", "").strip()
+        password = data.get("password", "").strip()
+        
+        if not all([nome, email, password]):
+            return jsonify({"error": "All fields required"}), 400
+        
+        connection = get_db_connection()
+        if connection is None:
+            return jsonify({"error": "Database connection failed"}), 500
+        
+        cursor = connection.cursor()
+        try:
+            cursor.execute(
+                "INSERT INTO usuarios (email, senha, permisao) VALUES (%s, %s, %s)",
+                (email, password, 0)  # 0 = regular user
+            )
+            cursor.close()
+            connection.close()
+            return jsonify({"success": True}), 201
+        except mysql.connector.errors.IntegrityError:
+            cursor.close()
+            connection.close()
+            return jsonify({"error": "Email already registered"}), 409
+            
+    except Exception as e:
+        logger.error(f"Register error: {e}")
+        return jsonify({"error": "Server error"}), 500
+
+
+@app.route("/logout")
+def logout():
+    """
+    Logout route - clears session
+    """
+    session.clear()
+    return redirect(url_for("index"))
 
 
 @app.route("/estoque")
@@ -54,9 +140,12 @@ def estoque():
     """
     Estoque route - mostra os dados do inventario
     """
+    if 'email' not in session:
+        return redirect(url_for("index"))
+    
     connection = None
     data = []
-    error_msg = None  # Add this
+    error_msg = None
     
     try:
         connection = get_db_connection()
@@ -76,7 +165,44 @@ def estoque():
         if connection and connection.is_connected():
             connection.close()
 
-    return render_template("estoque.html", data=data, error=error_msg)
+    return render_template("estoque.html", data=data, error=error_msg, email=session.get('email'))
+
+
+@app.route("/api/item", methods=["POST"])
+def add_item():
+    """
+    API endpoint to add inventory item
+    """
+    if 'email' not in session or not session.get('permisao'):
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        data = request.get_json()
+        nome = data.get("nome", "").strip()
+        quantidade = data.get("quantidade", 0)
+        categoria = data.get("categoria", "").strip()
+        descricao = data.get("descricao", "").strip()
+        
+        if not all([nome, quantidade, categoria, descricao]):
+            return jsonify({"error": "All fields required"}), 400
+        
+        connection = get_db_connection()
+        if connection is None:
+            return jsonify({"error": "Database connection failed"}), 500
+        
+        cursor = connection.cursor()
+        cursor.execute(
+            "INSERT INTO estoque (nome, quantidade, categoria, descricao) VALUES (%s, %s, %s, %s)",
+            (nome, quantidade, categoria, descricao)
+        )
+        cursor.close()
+        connection.close()
+        return jsonify({"success": True}), 201
+        
+    except Exception as e:
+        logger.error(f"Add item error: {e}")
+        return jsonify({"error": "Server error"}), 500
+
 
 if __name__ == "__main__":
     app.run(
@@ -84,3 +210,4 @@ if __name__ == "__main__":
         host=os.getenv("FLASK_HOST", "127.0.0.1"),
         port=int(os.getenv("FLASK_PORT", "5000"))
     )
+
