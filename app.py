@@ -126,7 +126,7 @@ def register():
     except Exception as e:
         logger.error(f"Register error: {e}")
         return jsonify({"error": "Server error"}), 500 
-#Sla como explicar essa parte sendo bem sincero
+#umas autenticação lwgais ou algo assim
 @app.route("/logout")
 def logout():
     """
