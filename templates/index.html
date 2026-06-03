@@ -6,18 +6,16 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../static/style.css">
-    <link rel="script" href="../app.py">
-
 </head>
 
 <body>
 
 <div id="container">
 
-
+    <!-- CARROSSEL -->
     <div id="carrossel">
         <div id="carouselExampleInterval" class="carousel slide" data-bs-ride="carousel">
-            
+
             <div class="carousel-inner">
 
                 <div class="carousel-item active" data-bs-interval="3000">
@@ -36,82 +34,105 @@
         </div>
     </div>
 
-
+    <!-- LOGIN -->
     <div id="corpo">
 
-
-        <form id="login-box" action="estoque" method="GET">
+        <form id="login-box">
 
             <img src="../static/senai2.png" id="logo">
 
             <div class="mb-3">
-                <label>matricula:</label>
-                <input type="text" class="form-control" placeholder="Digite sua matricula" required>
+                <label>Matrícula:</label>
+                <input type="text" class="form-control" placeholder="Digite sua matrícula" required>
             </div>
 
             <div class="mb-3">
                 <label>E-mail:</label>
-                <input type="email" class="form-control" placeholder="Digite seu E-mail" required>
+                <input type="email" name="email" id="email" class="form-control" placeholder="Digite seu E-mail" required>
             </div>
 
             <div class="mb-3">
                 <label>Senha:</label>
-                <input type="password" class="form-control" placeholder="Digite sua Senha" required>
+                <input type="password" name="password" id="password" class="form-control" placeholder="Digite sua Senha" required>
             </div>
 
-
+            <!-- BOTÕES USUÁRIO / ADMIN -->
             <div id="botao_usu_adm">
 
                 <input type="radio" class="btn-check" name="tipo" id="usuario" checked>
                 <label class="btn btn-secondary" for="usuario">Usuário</label>
-            
+
                 <input type="radio" class="btn-check" name="tipo" id="admin">
                 <label class="btn btn-secondary" for="admin">Admin</label>
-            
+
             </div>
-            
+
             <br>
 
-            <button type="button"
-                    onclick="window.location.href='estoque.html'"
-                    class="btn btn-primary w-100 mb-2">
+            <!-- LOGIN (FLASK API) -->
+            <button type="button" onclick="login()" class="btn btn-primary w-100 mb-2">
                 Entrar
             </button>
-            
+
             <p style="text-align: center;">
                 <br> Cadastrar Usuario?
             </p>
-            
+
+            <!-- CADASTRO -->
             <button id="cadastrar"
-                    onclick="window.location.href='cadastrar.html'"
+                    onclick="window.location.href='/cadastrar'"
                     type="button"
                     class="btn btn-success w-100"
                     disabled>
                 Cadastrar
             </button>
-            
-            <script>
-            const usuario = document.getElementById("usuario");
-            const admin = document.getElementById("admin");
-            const cadastrar = document.getElementById("cadastrar");
-            
-            // Começa desativado
-            cadastrar.disabled = true;
-            
-            admin.addEventListener("change", () => {
-                cadastrar.disabled = false;
-            });
-            
-            usuario.addEventListener("change", () => {
-                cadastrar.disabled = true;
-            });
-            </script>
 
         </form>
 
     </div>
 
 </div>
+
+<!-- SCRIPT -->
+<script>
+const usuario = document.getElementById("usuario");
+const admin = document.getElementById("admin");
+const cadastrar = document.getElementById("cadastrar");
+
+// começa bloqueado
+cadastrar.disabled = true;
+
+// libera ou bloqueia botão
+admin.addEventListener("change", () => {
+    cadastrar.disabled = false;
+});
+
+usuario.addEventListener("change", () => {
+    cadastrar.disabled = true;
+});
+
+// LOGIN (FLASK API)
+async function login() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+        window.location.href = "/estoque";
+    } else {
+        alert(data.error);
+    }
+}
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
