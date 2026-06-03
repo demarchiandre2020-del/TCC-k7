@@ -40,13 +40,13 @@
     <div id="corpo">
 
 
-        <form id="login-box" action="/estoque" method="GET">
+        <form id="login-box" action="estoque" method="GET">
 
             <img src="../static/senai2.png" id="logo">
 
             <div class="mb-3">
-                <label>Usuário:</label>
-                <input type="text" class="form-control" placeholder="Digite seu Nome" required>
+                <label>matricula:</label>
+                <input type="text" class="form-control" placeholder="Digite sua matricula" required>
             </div>
 
             <div class="mb-3">
@@ -64,28 +64,48 @@
 
                 <input type="radio" class="btn-check" name="tipo" id="usuario" checked>
                 <label class="btn btn-secondary" for="usuario">Usuário</label>
-
+            
                 <input type="radio" class="btn-check" name="tipo" id="admin">
                 <label class="btn btn-secondary" for="admin">Admin</label>
-
-
-
+            
             </div>
-
+            
             <br>
 
-
-            <button type="submit" class="btn btn-primary w-100 mb-2">
+            <button type="button"
+                    onclick="window.location.href='estoque.html'"
+                    class="btn btn-primary w-100 mb-2">
                 Entrar
             </button>
-
+            
             <p style="text-align: center;">
-                <br>Não tem conta?
+                <br> Cadastrar Usuario?
             </p>
-
-            <button onclick="window.location.href='/cadastrar.html'" type="button" class="btn btn-success w-100">
-                Cadastrar-se
+            
+            <button id="cadastrar"
+                    onclick="window.location.href='cadastrar.html'"
+                    type="button"
+                    class="btn btn-success w-100"
+                    disabled>
+                Cadastrar
             </button>
+            
+            <script>
+            const usuario = document.getElementById("usuario");
+            const admin = document.getElementById("admin");
+            const cadastrar = document.getElementById("cadastrar");
+            
+            // Começa desativado
+            cadastrar.disabled = true;
+            
+            admin.addEventListener("change", () => {
+                cadastrar.disabled = false;
+            });
+            
+            usuario.addEventListener("change", () => {
+                cadastrar.disabled = true;
+            });
+            </script>
 
         </form>
 
