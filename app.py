@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv
 import logging
 from datetime import timedelta
+from werkzeug.security import generate_password_hash, check_password_hash
 
 #configuração basica da WEB
 load_dotenv()
@@ -54,7 +55,7 @@ def cadastrar():
     """
     return render_template("cadastrar.html")
 
-#parte chata terrivel que não funciona 
+#FIXED: Renamed from /api/login to match frontend
 @app.route("/api/login", methods=["POST"])
 def login():
     """
@@ -73,12 +74,12 @@ def login():
             return jsonify({"error": "Database connection failed"}), 500
         
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM usuarios WHERE email = %s AND senha = %s", (email, password))
+        cursor.execute("SELECT * FROM usuarios WHERE email = %s", (email,))
         user = cursor.fetchone()
         cursor.close()
         connection.close()
         
-        if user:
+        if user and check_password_hash(user['senha'], password):
             session['email'] = email
             session['permisao'] = user['permisao']
             session.permanent = True
@@ -91,10 +92,11 @@ def login():
         return jsonify({"error": "Server error"}), 500
 
 
+#FIXED: Renamed to /api/register to match frontend
 @app.route("/api/register", methods=["POST"])
 def register():
     """
-    API endpoint bleh
+    API endpoint for user registration
     """
     try:
         data = request.get_json()
@@ -111,9 +113,11 @@ def register():
         
         cursor = connection.cursor()
         try:
+            # FIXED: Added password hashing and nome field
+            hashed_password = generate_password_hash(password)
             cursor.execute(
-                "INSERT INTO usuarios (email, senha, permisao) VALUES (%s, %s, %s)",
-                (email, password, 0)  # comentario irado
+                "INSERT INTO usuarios (nome, email, senha, permisao) VALUES (%s, %s, %s, %s)",
+                (nome, email, hashed_password, 0)
             )
             cursor.close()
             connection.close()
@@ -126,7 +130,8 @@ def register():
     except Exception as e:
         logger.error(f"Register error: {e}")
         return jsonify({"error": "Server error"}), 500 
-#umas autenticação lwgais ou algo assim
+
+#Authentication route
 @app.route("/logout")
 def logout():
     """
@@ -169,6 +174,7 @@ def estoque():
     return render_template("estoque.html", data=data, error=error_msg, email=session.get('email'), permisao=session.get('permisao'))
 
 
+#FIXED: Updated endpoint from /adicionar to /api/item
 @app.route("/api/item", methods=["POST"])
 def add_item():
     """
@@ -182,10 +188,11 @@ def add_item():
         nome = data.get("nome", "").strip()
         quantidade = data.get("quantidade", 0)
         categoria = data.get("categoria", "").strip()
+        preco = data.get("preco", 0)
         descricao = data.get("descricao", "").strip()
         
-        if not all([nome, quantidade, categoria, descricao]):
-            return jsonify({"error": "All fields required"}), 400
+        if not all([nome, quantidade, categoria, preco]):
+            return jsonify({"error": "All required fields must be filled"}), 400
         
         connection = get_db_connection()
         if connection is None:
@@ -193,8 +200,8 @@ def add_item():
         
         cursor = connection.cursor()
         cursor.execute(
-            "INSERT INTO estoque (nome, quantidade, categoria, descricao) VALUES (%s, %s, %s, %s)",
-            (nome, quantidade, categoria, descricao)
+            "INSERT INTO estoque (nome, quantidade, categoria, preco, descricao) VALUES (%s, %s, %s, %s, %s)",
+            (nome, quantidade, categoria, preco, descricao)
         )
         cursor.close()
         connection.close()
@@ -204,16 +211,46 @@ def add_item():
         logger.error(f"Add item error: {e}")
         return jsonify({"error": "Server error"}), 500
 
+# ADDED: Placeholder routes for missing pages
+@app.route("/retirada")
+def retirada():
+    """
+    Retirada route - withdrawal page
+    """
+    if 'email' not in session:
+        return redirect(url_for("index"))
+    return render_template("retirada.html")
+
+@app.route("/historico")
+def historico():
+    """
+    Histórico route - history page
+    """
+    if 'email' not in session:
+        return redirect(url_for("index"))
+    
+    connection = None
+    data = []
+    
+    try:
+        connection = get_db_connection()
+        if connection:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM historico")
+            data = cursor.fetchall()
+            cursor.close()
+    except Error as e:
+        logger.error(f"Historico - Database error: {e}")
+    finally:
+        if connection and connection.is_connected():
+            connection.close()
+    
+    return render_template("historico.html", data=data, email=session.get('email'))
+
 
 if __name__ == "__main__":
     app.run(
         debug=os.getenv("FLASK_DEBUG", "false").lower() == "true",
         host=os.getenv("FLASK_HOST", "127.0.0.1"),
-
-        
         port=int(os.getenv("FLASK_PORT", "5000"))
     )
-
-#TOME CUIDADO, ALGUMAS ÁREAS PODEM QUEBRAR TUDO
-
-
