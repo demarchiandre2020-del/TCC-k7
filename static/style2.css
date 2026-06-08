@@ -112,7 +112,7 @@ body::before {
     transform: scale(1.01);
 }
 
-#titulo {
+#titulo-card {
     color: #35437A;
     font-weight: bold;
     text-align: center;
