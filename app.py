@@ -1,4 +1,4 @@
-#os imports necessarios
+
 from flask import Flask, render_template, redirect, url_for, request, jsonify, session
 import mysql.connector as mysql
 from mysql.connector import Error
@@ -55,7 +55,7 @@ def cadastrar():
     """
     return render_template("cadastrar.html")
 
-#FIXED: Renamed from /api/login to match frontend
+
 @app.route("/api/login", methods=["POST"])
 def login():
     """
