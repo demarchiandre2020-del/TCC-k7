@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+
+<body>
+
+<div id="container">
+
+    <!-- mesma coisa do index -->
+    <div id="carrossel">
+        <div id="carouselExampleInterval" class="carousel slide" data-bs-ride="carousel">
+
+            <div class="carousel-inner">
+
+                <div class="carousel-item active" data-bs-interval="3000">
+                    <img src="../static/robotista.jpg" class="d-block w-100">
+                </div>
+
+                <div class="carousel-item" data-bs-interval="3000">
+                    <img src="../static/eletronica2.jpg" class="d-block w-100">
+                </div>
+
+                <div class="carousel-item">
+                    <img src="../static/cursos-tecnicos.jpg" class="d-block w-100">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="corpo">
+
+        <form id="login-box">
+
+            <img src="../static/senai2.png" id="logo">
+
+            <div class="mb-3">
+                <label>Nome:</label>
+                <input type="text" name="nome" id="nome" class="form-control" placeholder="Digite seu Nome" required>
+            </div>
+
+            <div class="mb-3">
+                <label>E-mail:</label>
+                <input type="email" name="email" id="email" class="form-control" placeholder="Digite seu E-mail" required>
+            </div>
+
+            <div class="mb-3">
+                <label>Senha:</label>
+                <input type="password" name="password" id="password" class="form-control" placeholder="Mínimo 6 caracteres" required>
+            </div>
+
+            <div class="mb-3">
+                <label>Confirmar Senha:</label>
+                <input type="password" name="password_confirm" id="password_confirm" class="form-control" placeholder="Confirme sua Senha" required>
+            </div>
+
+            <br>
+
+            <button type="button" onclick="cadastrar()" class="btn btn-primary w-100 mb-2">
+                Cadastrar
+            </button>
+
+            <p style="text-align: center;">
+                <br> Já possui conta?
+            </p>
+
+            <button type="button" onclick="window.location.href='/'" class="btn btn-secondary w-100">
+                Voltar ao Login
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+async function cadastrar() {
+    const nome = document.getElementById("nome").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const password_confirm = document.getElementById("password_confirm").value;
+
+    // Validações
+    if (!nome || !email || !password || !password_confirm) {
+        alert("Preencha todos os campos!");
+        return;
+    }
+
+    if (password.length < 6) {
+        alert("Senha deve ter no mínimo 6 caracteres!");
+        return;
+    }
+
+    if (password !== password_confirm) {
+        alert("As senhas não coincidem!");
+        return;
+    }
+
+    // Validar email
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+        alert("Email inválido!");
+        return;
+    }
+
+    try {
+        const response = await fetch("/api/register", { // CORRIGIDO: era /api/cadastrar
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ nome, email, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert("Cadastro realizado com sucesso!");
+            window.location.href = "/";
+        } else {
+            alert(data.error || "Erro ao cadastrar");
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Erro ao conectar com o servidor.");
+    }
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

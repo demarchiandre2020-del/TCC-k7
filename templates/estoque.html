@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estoque</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../static/style2.css">
+</head>
+
+<body>
+
+<nav id="navbar" class="navbar navbar-expand-lg fixed-top">
+
+    <div class="container-fluid">
+
+        <a class="navbar-brand d-flex align-items-center fw-bold" href="/">
+            <img src="../static/senai2.png" id="logo">
+            <span class="ms-2">Almoxarifado</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+
+            <ul class="navbar-nav ms-auto">
+
+                <li class="nav-item">
+                    <a class="nav-link active" href="/estoque">Home</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/retirada">Retirada</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/historico">Histórico</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">Sair</a>
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>
+
+<div id="elemento">
+
+    <div id="card">
+
+        <h3 id="titulo-card">Controle de Estoque</h3>
+
+        <!-- BOTÃO -->
+        {% if permisao == 1 %}
+        <div id="acoes">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAdicionar">
+                + Adicionar Item
+            </button>
+        </div>
+        {% endif %}
+
+        <table class="table table-striped table-hover" id="tabela">
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Quantidade</th>
+                    <th>Categoria</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in data %}
+                <tr>
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.nome }}</td>
+                    <td>{{ item.quantidade }}</td>
+                    <td>{{ item.categoria }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<div class="modal fade" id="modalAdicionar" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Adicionar Item</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="mb-3">
+          <label>Nome</label>
+          <input type="text" class="form-control" id="itemNome" required>
+        </div>
+
+        <div class="mb-3">
+          <label>Categoria</label>
+          <input type="text" class="form-control" id="itemCategoria" required>
+        </div>
+
+        <div class="mb-3">
+          <label>Quantidade</label>
+          <input type="number" class="form-control" id="itemQuantidade" min="1" required>
+        </div>
+
+        <div class="mb-3">
+          <label>Preço (R$)</label>
+          <input type="number" class="form-control" id="itemPreco" step="0.01" required>
+        </div>
+
+        <div class="mb-3">
+          <label>Descrição</label>
+          <textarea class="form-control" id="itemDescricao"></textarea>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-success" onclick="adicionarItem()">
+          Salvar
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+async function adicionarItem() {
+    const nome = document.getElementById("itemNome").value;
+    const categoria = document.getElementById("itemCategoria").value;
+    const quantidade = document.getElementById("itemQuantidade").value;
+    const preco = document.getElementById("itemPreco").value;
+    const descricao = document.getElementById("itemDescricao").value;
+
+    if (!nome || !categoria || !quantidade || !preco) {
+        alert("Por favor, preencha todos os campos obrigatórios!");
+        return;
+    }
+
+    const response = await fetch("/api/item", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ nome, categoria, quantidade, preco, descricao })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+        alert("Item adicionado com sucesso!");
+        location.reload();
+    } else {
+        alert(data.error || "Erro ao adicionar item");
+    }
+}
+</script>
+
+</body>
+</html>
