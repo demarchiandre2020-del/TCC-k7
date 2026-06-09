@@ -1,0 +1,119 @@
+body {
+    background-image: url("instituto_senai_de_tecnologia_mt_cover.png");
+    background-size: cover;
+    background-position: top;
+    background-repeat: no-repeat;
+    font-family: OCR A Std, monospace;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: -1;
+}
+
+#navbar {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+
+    background: rgba(7, 47, 78, 0.85);
+    backdrop-filter: blur(10px);
+
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.3);
+
+    padding-left: 80px;
+    transition: 0.3s;
+}
+
+#navbar-title {
+    font-weight: bold;
+    font-size: 10px;
+    color: white;
+}
+
+#navbar .nav-link {
+    color: white;
+    font-weight: 500;
+    position: relative;
+    transition: 0.3s;
+}
+
+#navbar .nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    width: 0%;
+    height: 2px;
+    background: #00d4ff;
+    transition: 0.3s;
+}
+
+#navbar .nav-link:hover {
+    color: #00d4ff;
+}
+
+#navbar .nav-link:hover::after {
+    width: 100%;
+}
+
+#navbar .nav-link.active {
+    color: #00d4ff;
+}
+
+/* container principal */
+#elemento {
+    max-width: 1000px;
+    margin: 50px auto;
+}
+
+/* card */
+#card {
+    padding: 25px;
+    border-radius: 20px;
+    background: white;
+    box-shadow: 0px 10px 30px rgba(0,0,0,0.15);
+    transition: 0.3s;
+}
+
+#card:hover {
+    transform: scale(1.01);
+}
+
+#tabela {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+#tabela th {
+    background: linear-gradient(90deg, #101B47, #35437A, #101B47);
+    color: white;
+    border-color: black;
+    text-align: center;
+}
+
+#tabela td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+#tabela tr {
+    transition: 0.2s;
+}
+
+#tabela tr:hover {
+    background-color: #dfe6ff;
+    transform: scale(1.01);
+}
+
+#titulo-card {
+    color: #35437A;
+    font-weight: bold;
+    text-align: center;
+}

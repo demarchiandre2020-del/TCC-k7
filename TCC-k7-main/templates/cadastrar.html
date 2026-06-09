@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Almoxarifado SENAI</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.min.css" rel="stylesheet">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div id="container">
+    <!-- Painel Esquerdo: Carrossel de Fotos -->
+    <div id="carrossel">
+        <div id="carouselExampleInterval" class="carousel slide h-100" data-bs-ride="carousel">
+            <div class="carousel-inner h-100">
+                <div class="carousel-item active h-100" data-bs-interval="3000">
+                    <img src="{{ url_for('static', filename='robotista.jpg') }}" class="d-block w-100 h-100 object-fit-cover" alt="Robotica">
+                </div>
+                <div class="carousel-item h-100" data-bs-interval="3000">
+                    <img src="{{ url_for('static', filename='eletronica2.jpg') }}" class="d-block w-100 h-100 object-fit-cover" alt="Eletronica">
+                </div>
+                <div class="carousel-item h-100" data-bs-interval="3000">
+                    <img src="{{ url_for('static', filename='cursos-tecnicos.jpg') }}" class="d-block w-100 h-100 object-fit-cover" alt="Cursos Tecnicos">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Painel Direito: Formulário de Cadastro -->
+    <div id="corpo">
+        <form id="login-box" onsubmit="event.preventDefault(); cadastrar();">
+            <div class="text-center">
+                <img src="{{ url_for('static', filename='senai2.png') }}" id="logo" alt="SENAI Logo">
+            </div>
+
+            <div class="mb-2">
+                <label for="nome">Nome:</label>
+                <input type="text" name="nome" id="nome" class="form-control form-control-sm" placeholder="Digite seu Nome" required>
+            </div>
+
+            <div class="mb-2">
+                <label for="matricula">Matrícula:</label>
+                <input type="text" name="matricula" id="matricula" class="form-control form-control-sm" placeholder="Digite a matrícula" required>
+            </div>
+
+            <div class="mb-2">
+                <label for="email">E-mail:</label>
+                <input type="email" name="email" id="email" class="form-control form-control-sm" placeholder="Digite seu E-mail" required>
+            </div>
+
+            <div class="mb-2">
+                <label for="password">Senha:</label>
+                <input type="password" name="password" id="password" class="form-control form-control-sm" placeholder="Digite sua Senha" required>
+            </div>
+
+            <div class="mb-2">
+                <label for="password_confirm">Confirmar Senha:</label>
+                <input type="password" name="password_confirm" id="password_confirm" class="form-control form-control-sm" placeholder="Confirme sua Senha" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="permisao">Nível de Permissão:</label>
+                <select name="permisao" id="permisao" class="form-select form-select-sm bg-dark text-white border-secondary">
+                    <option value="0">Usuário Comum</option>
+                    <option value="1">Administrador</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mb-2 py-2 fw-bold">
+                Cadastrar Novo Usuário
+            </button>
+
+            <button type="button" onclick="window.location.href='/estoque'" class="btn btn-secondary w-100 py-2 fw-bold">
+                Voltar ao Painel
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.all.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+async function cadastrar() {
+    const nome = document.getElementById("nome").value.trim();
+    const matricula = document.getElementById("matricula").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const password_confirm = document.getElementById("password_confirm").value.trim();
+    const permisao = document.getElementById("permisao").value;
+
+    if (!nome || !matricula || !email || !password || !password_confirm) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campos vazios',
+            text: 'Por favor, preencha todos os campos.',
+            confirmButtonColor: '#365AEB'
+        });
+        return;
+    }
+
+    if (password !== password_confirm) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Erro de Senha',
+            text: 'As senhas não coincidem!',
+            confirmButtonColor: '#365AEB'
+        });
+        return;
+    }
+
+    try {
+        const response = await fetch("/api/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ nome, matricula, email, password, permisao })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucesso',
+                text: 'Cadastro realizado com sucesso!',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            setTimeout(() => {
+                window.location.href = "/estoque";
+            }, 2000);
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro no Cadastro',
+                text: data.error || 'Não foi possível cadastrar o usuário.',
+                confirmButtonColor: '#365AEB'
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Erro de conexão',
+            text: 'Não foi possível conectar ao servidor.',
+            confirmButtonColor: '#365AEB'
+        });
+    }
+}
+</script>
+
+</body>
+</html>
