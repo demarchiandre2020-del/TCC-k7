@@ -97,9 +97,7 @@
 
             <br>
 
-            <button type="button"
-                    onclick="login()"
-                    class="btn btn-primary w-100 mb-2">
+            <button type="button" onclick="login()" class="btn btn-primary w-100 mb-2">
                 Entrar
             </button>
 
@@ -107,11 +105,7 @@
                 <br> Cadastrar Usuário?
             </p>
 
-            <button id="cadastrar"
-                    type="button"
-                    onclick="cadastrar()"
-                    class="btn btn-success w-100"
-                    disabled>
+            <button id="cadastrar" type="button" onclick="cadastrar()" class="btn btn-success w-100" disabled>
                 Cadastrar
             </button>
 
@@ -137,7 +131,7 @@ usuario.addEventListener("change", () => {
 });
 
 function cadastrar() {
-    window.location.href = "/cadastro";
+    href = "/cadastrar";
 }
 
 async function login() {
