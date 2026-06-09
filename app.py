@@ -131,16 +131,6 @@ def register():
         logger.error(f"Register error: {e}")
         return jsonify({"error": "Server error"}), 500 
 
-#Authentication route
-@app.route("/logout")
-def logout():
-    """
-    Logout route - clears session
-    """
-    session.clear()
-    return redirect(url_for("index"))
-
-
 @app.route("/estoque")
 def estoque():
     """
