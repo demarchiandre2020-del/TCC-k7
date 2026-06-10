@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Estoque - Almoxarifado</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- Navbar Moderno -->
+<nav class="navbar navbar-expand-lg glass-navbar navbar-dark py-3">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center fw-bold fs-4 text-white" href="/estoque">
+      <img src="{{ url_for('static', filename='senai.png') }}" alt="SENAI" height="28" class="me-2" style="filter: brightness(0) invert(1);">
+      <span class="border-start border-secondary ps-2 ms-1" style="font-size: 1.15rem; font-weight: 500; letter-spacing: 0.5px;">Almoxarifado</span>
+    </a>
+    
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <!-- Navegação por Abas no Navbar -->
+      <div class="nav nav-pills nav-pills-custom ms-auto" id="dashboard-tabs" role="tablist">
+        <button class="nav-link active" id="tab-estoque" data-bs-toggle="tab" data-bs-target="#content-estoque" type="button" role="tab" onclick="loadEstoque()">
+          <i class="bi bi-grid-fill me-1"></i> Estoque
+        </button>
+        <button class="nav-link" id="tab-retiradas" data-bs-toggle="tab" data-bs-target="#content-retiradas" type="button" role="tab" onclick="prepareRetiradaTab()">
+          <i class="bi bi-arrow-down-left-circle-fill me-1"></i> Retirada
+        </button>
+        <button class="nav-link" id="tab-historico" data-bs-toggle="tab" data-bs-target="#content-historico" type="button" role="tab" onclick="loadHistorico()">
+          <i class="bi bi-clock-history me-1"></i> Histórico
+        </button>
+      </div>
+
+      <!-- Informações do Usuário -->
+      <div class="d-flex align-items-center ms-lg-4 mt-3 mt-lg-0">
+        <div class="text-end me-3 d-none d-sm-block">
+          <div class="fw-semibold text-white" style="font-size: 0.9rem;">{{ nome }}</div>
+          <div class="text-secondary" style="font-size: 0.75rem;">
+            {% if permisao == 1 %}
+              <span class="badge bg-danger-subtle text-danger" style="font-size: 0.7rem; padding: 2px 6px;">Admin</span>
+            {% else %}
+              <span class="badge bg-primary-subtle text-primary" style="font-size: 0.7rem; padding: 2px 6px;">Usuário</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="avatar-badge d-flex align-items-center justify-content-center bg-primary text-white fw-bold rounded-circle me-3" style="width: 40px; height: 40px; font-size: 1.1rem; box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);">
+          {{ nome[0] | upper }}
+        </div>
+        <a href="/logout" class="btn btn-outline-danger btn-sm rounded-pill px-3" title="Sair do sistema">
+          <i class="bi bi-box-arrow-right"></i> Sair
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Container Principal do Dashboard -->
+<div id="dashboard-container">
+    
+    <!-- Alertas Globais -->
+    <div id="global-alert" class="alert alert-dismissible fade show d-none p-3 mb-4" role="alert" style="border-radius: 12px;">
+        <span id="global-alert-text"></span>
+        <button type="button" class="btn-close btn-close-custom" onclick="hideGlobalAlert()"></button>
+    </div>
+
+    <!-- Conteúdo Dinâmico por Abas -->
+    <div class="tab-content" id="dashboard-tab-content">
+        
+        <!-- ABA 1: GERENCIAMENTO DE ESTOQUE -->
+        <div class="tab-pane fade show active" id="content-estoque" role="tabpanel">
+            <div class="row align-items-center g-3 mb-4">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0 text-secondary" style="border-color: var(--border-color); border-top-left-radius: 12px; border-bottom-left-radius: 12px;">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" id="search-input" class="form-control form-control-custom border-start-0" placeholder="Buscar por item..." style="border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important;" oninput="filterEstoque()">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select id="category-filter" class="form-select form-control-custom" onchange="filterEstoque()">
+                        <option value="">Todas as Categorias</option>
+                    </select>
+                </div>
+                <div class="col-md-3 text-md-end">
+                    {% if permisao == 1 %}
+                        <button class="btn btn-primary-custom w-100 py-2" onclick="openAddModal()">
+                            <i class="bi bi-plus-circle me-1"></i> Novo Item
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Grade do Inventário -->
+            <div id="inventory-container" class="inventory-grid">
+                <!-- Inserido dinamicamente via JS -->
+                <div class="text-center text-secondary w-100 py-5">
+                    <div class="spinner-border text-primary mb-3" role="status"></div>
+                    <p>Carregando inventário...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA 2: FORMULÁRIO DE RETIRADA -->
+        <div class="tab-pane fade" id="content-retiradas" role="tabpanel">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="glass-panel p-4">
+                        <h4 class="mb-4 text-white fw-bold"><i class="bi bi-arrow-down-left-circle me-2 text-primary"></i>Solicitar Retirada</h4>
+                        <form id="form-retirada-direta" onsubmit="handleDirectWithdrawal(event)">
+                            <div class="mb-3">
+                                <label class="form-label-custom">Selecione o Item</label>
+                                <select id="withdraw-item-select" class="form-select form-control-custom" required onchange="updateWithdrawMaxQty()">
+                                    <option value="" disabled selected>Escolha um item do estoque...</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label-custom">Quantidade Disponível</label>
+                                <input type="text" id="withdraw-item-qty-avail" class="form-control form-control-custom" disabled placeholder="0">
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label-custom">Quantidade a Retirar</label>
+                                <input type="number" id="withdraw-item-qty-input" class="form-control form-control-custom" min="1" required placeholder="Digite a quantidade">
+                            </div>
+                            <button type="submit" class="btn btn-primary-custom w-100 py-2.5">
+                                Confirmar Retirada
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA 3: HISTÓRICO DE MOVIMENTAÇÕES -->
+        <div class="tab-pane fade" id="content-historico" role="tabpanel">
+            <div class="glass-panel p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="m-0 text-white fw-bold"><i class="bi bi-clock-history me-2 text-primary"></i>Histórico de Movimentações</h4>
+                    <button class="btn btn-secondary-custom btn-sm" onclick="loadHistorico()">
+                        <i class="bi bi-arrow-clockwise"></i> Atualizar
+                    </button>
+                </div>
+                
+                <div class="table-responsive-custom">
+                    <table class="table-custom" id="table-historico">
+                        <thead>
+                            <tr>
+                                <th>Data / Hora</th>
+                                <th>Responsável</th>
+                                <th>Item</th>
+                                <th>Quantidade</th>
+                                <th>Tipo de Movimentação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historico-tbody">
+                            <!-- Inserido dinamicamente via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- MODAIS (Adicionar/Editar Item - Admin Apenas) -->
+<!-- ============================================== -->
+{% if permisao == 1 %}
+<div class="modal fade" id="itemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-content-glass">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-white" id="itemModalLabel">Novo Item</h5>
+        <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="form-item" onsubmit="handleItemSubmit(event)">
+        <div class="modal-body">
+            <input type="hidden" id="item-id">
+            
+            <div class="mb-3">
+                <label class="form-label-custom">Nome do Item</label>
+                <input type="text" id="item-nome" class="form-control form-control-custom" required placeholder="Ex: Multímetro Digital">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label-custom">Categoria</label>
+                <input type="text" id="item-categoria" class="form-control form-control-custom" required placeholder="Ex: Eletrônica, Ferramentas, Segurança">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label-custom">Quantidade Inicial</label>
+                <input type="number" id="item-quantidade" class="form-control form-control-custom" min="0" required placeholder="0">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label-custom">Descrição</label>
+                <textarea id="item-descricao" class="form-control form-control-custom" rows="2" placeholder="Ex: Marca Minipa, Modelo ET-1002..."></textarea>
+            </div>
+            
+            <div class="mb-3 text-center d-none" id="image-preview-container">
+                <img id="form-image-preview" src="" alt="Prévia da Imagem" class="img-thumbnail" style="max-height: 120px; background: rgba(0,0,0,0.2); border-color: var(--border-color);">
+            </div>
+
+            <div class="mb-1">
+                <label class="form-label-custom">Foto do Item</label>
+                <input type="file" id="item-imagem" class="form-control form-control-custom" accept="image/*">
+                <div class="form-text text-secondary" style="font-size: 0.75rem;">Formatos aceitos: JPG, PNG, WEBP, GIF.</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary-custom">Salvar Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ============================================== -->
+<!-- MODAL DE RETIRADA RÁPIDA (Todos os Usuários) -->
+<!-- ============================================== -->
+<div class="modal fade" id="withdrawModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-content-glass">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-white">Solicitar Retirada</h5>
+        <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="form-retirada-rapida" onsubmit="handleQuickWithdrawalSubmit(event)">
+        <div class="modal-body">
+            <input type="hidden" id="withdraw-item-id">
+            
+            <div class="mb-3">
+                <label class="form-label-custom">Item Selecionado</label>
+                <input type="text" id="withdraw-item-name" class="form-control form-control-custom" disabled>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label-custom">Saldo Disponível</label>
+                <input type="text" id="withdraw-item-avail" class="form-control form-control-custom" disabled>
+            </div>
+
+            <div class="mb-1">
+                <label class="form-label-custom">Quantidade a Retirar</label>
+                <input type="number" id="withdraw-qty" class="form-control form-control-custom" min="1" required placeholder="Digite a quantidade">
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary-custom">Confirmar Retirada</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================== -->
+<!-- MODAL DE VISUALIZAÇÃO DE IMAGEM -->
+<!-- ============================================== -->
+<div class="modal fade" id="imagePopupModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-content-glass text-center p-3">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-white" id="imagePopupTitle">Imagem do Item</h5>
+        <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="imagePopupSrc" src="" alt="Foto do Item" class="img-fluid rounded-3 mb-3" style="max-height: 400px; object-fit: contain; box-shadow: 0 8px 24px rgba(0,0,0,0.5); width: 100%;">
+        <p id="imagePopupDesc" class="text-secondary mb-0" style="font-size: 0.9rem;"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- JS Lógica do Painel de Almoxarifado -->
+<script>
+let localEstoque = [];
+let bootstrapItemModal = null;
+let bootstrapWithdrawModal = null;
+let bootstrapImagePopupModal = null;
+const isAdmin = {{ permisao }};
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+    // Inicializa modais se existirem no DOM
+    const itemModalEl = document.getElementById('itemModal');
+    if (itemModalEl) bootstrapItemModal = new bootstrap.Modal(itemModalEl);
+    
+    const withdrawModalEl = document.getElementById('withdrawModal');
+    if (withdrawModalEl) bootstrapWithdrawModal = new bootstrap.Modal(withdrawModalEl);
+    
+    const imagePopupModalEl = document.getElementById('imagePopupModal');
+    if (imagePopupModalEl) bootstrapImagePopupModal = new bootstrap.Modal(imagePopupModalEl);
+    
+    // Listener para preview da imagem no formulário
+    const itemImagemInput = document.getElementById('item-imagem');
+    if (itemImagemInput) {
+        itemImagemInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const previewContainer = document.getElementById('image-preview-container');
+            const previewImg = document.getElementById('form-image-preview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImg.src = event.target.result;
+                    previewContainer.classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewContainer.classList.add('d-none');
+            }
+        });
+    }
+    
+    loadEstoque();
+});
+
+// Exibir Alertas Globais
+function showGlobalAlert(message, type = 'success') {
+    const alertBox = document.getElementById('global-alert');
+    const alertText = document.getElementById('global-alert-text');
+    
+    alertBox.className = `alert alert-dismissible fade show p-3 mb-4 alert-${type}`;
+    alertText.textContent = message;
+    alertBox.classList.remove('d-none');
+    
+    // Auto ocultar depois de 4 segundos
+    setTimeout(() => {
+        hideGlobalAlert();
+    }, 4000);
+}
+
+function hideGlobalAlert() {
+    const alertBox = document.getElementById('global-alert');
+    if (alertBox) alertBox.classList.add('d-none');
+}
+
+// Exibir Popup de Imagem
+function showImagePopup(name, imageUrl, description) {
+    document.getElementById('imagePopupTitle').textContent = name;
+    document.getElementById('imagePopupSrc').src = `/static/${imageUrl}`;
+    document.getElementById('imagePopupDesc').textContent = description || 'Sem descrição cadastrada.';
+    if (bootstrapImagePopupModal) bootstrapImagePopupModal.show();
+}
+
+// --- ABA 1: LOGICA DE ESTOQUE ---
+
+async function loadEstoque() {
+    const container = document.getElementById('inventory-container');
+    
+    try {
+        const response = await fetch('/api/estoque');
+        if (!response.ok) throw new Error('Falha ao recuperar estoque.');
+        
+        localEstoque = await response.json();
+        
+        // Carregar Filtros de Categoria
+        updateCategoryFilterOptions();
+        
+        // Renderizar Grade
+        renderInventory(localEstoque);
+        
+    } catch (error) {
+        console.error(error);
+        container.innerHTML = `
+            <div class="text-center text-danger w-100 py-5">
+                <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+                <p class="mt-2">Erro ao carregar dados do estoque.</p>
+            </div>
+        `;
+    }
+}
+
+function updateCategoryFilterOptions() {
+    const filterSelect = document.getElementById('category-filter');
+    const currentValue = filterSelect.value;
+    
+    // Extrai categorias unicas
+    const categories = [...new Set(localEstoque.map(item => item.categoria))].sort();
+    
+    filterSelect.innerHTML = '<option value="">Todas as Categorias</option>';
+    categories.forEach(cat => {
+        if (cat) {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            filterSelect.appendChild(option);
+        }
+    });
+    
+    // Restaura valor selecionado se ainda existir
+    if (categories.includes(currentValue)) {
+        filterSelect.value = currentValue;
+    }
+}
+
+function renderInventory(items) {
+    const container = document.getElementById('inventory-container');
+    
+    if (items.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-secondary w-100 py-5">
+                <i class="bi bi-box-open fs-1"></i>
+                <p class="mt-2">Nenhum item localizado no estoque.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = '';
+    items.forEach(item => {
+        // Status do estoque
+        let statusClass = 'status-in-stock';
+        let statusText = 'Em Estoque';
+        
+        if (item.quantidade === 0) {
+            statusClass = 'status-out-of-stock';
+            statusText = 'Esgotado';
+        } else if (item.quantidade < 5) {
+            statusClass = 'status-low-stock';
+            statusText = 'Baixo Estoque';
+        }
+        
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        
+        // Ações condicionais
+        let actionButtons = '';
+        if (isAdmin === 1) {
+            actionButtons = `
+                <div class="item-actions">
+                    <button class="btn-card-edit" onclick="openEditModal(${item.id})">
+                        <i class="bi bi-pencil-square"></i> Editar
+                    </button>
+                    <button class="btn-card-delete" onclick="handleDelete(${item.id}, '${item.nome}')">
+                        <i class="bi bi-trash-fill"></i> Excluir
+                    </button>
+                </div>
+            `;
+        } else {
+            actionButtons = `
+                <div class="item-actions">
+                    <button class="btn-card-withdraw" onclick="openWithdrawModal(${item.id}, '${item.nome}', ${item.quantidade})" ${item.quantidade === 0 ? 'disabled' : ''}>
+                        <i class="bi bi-arrow-down-left-circle"></i> Retirar
+                    </button>
+                </div>
+            `;
+        }
+        
+        let imageHtml = '';
+        if (item.imagem) {
+            imageHtml = `
+                <div class="item-card-image" onclick="showImagePopup('${item.nome.replace(/'/g, "\\'")}', '${item.imagem.replace(/'/g, "\\'")}', '${(item.descricao || "").replace(/'/g, "\\'")}')" style="cursor: pointer;">
+                    <img src="/static/${item.imagem}" alt="${item.nome}">
+                    <div class="image-overlay-btn"><i class="bi bi-zoom-in"></i> Ver Foto</div>
+                </div>
+            `;
+        } else {
+            imageHtml = `
+                <div class="item-card-image">
+                    <div class="item-card-image-placeholder">
+                        <i class="bi bi-image"></i>
+                        <span>Sem imagem</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        card.innerHTML = `
+            <div>
+                <div class="item-card-header">
+                    <span class="item-category">${item.categoria}</span>
+                    <span class="badge-status ${statusClass}">${statusText}</span>
+                </div>
+                ${imageHtml}
+                <h5 class="item-title">${item.nome}</h5>
+                <p class="item-description">${item.descricao || 'Sem descrição cadastrada.'}</p>
+            </div>
+            <div>
+                <div class="item-status-bar">
+                    <span class="text-secondary" style="font-size: 0.8rem;">Cód: #${item.id}</span>
+                    <span class="item-quantity">${item.quantidade} <span>unid</span></span>
+                </div>
+                ${actionButtons}
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function filterEstoque() {
+    const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+    const categoryVal = document.getElementById('category-filter').value;
+    
+    const filtered = localEstoque.filter(item => {
+        const matchesSearch = item.nome.toLowerCase().includes(searchVal) || 
+                              (item.descricao && item.descricao.toLowerCase().includes(searchVal)) ||
+                              item.id.toString() === searchVal;
+                              
+        const matchesCategory = categoryVal === '' || item.categoria === categoryVal;
+        
+        return matchesSearch && matchesCategory;
+    });
+    
+    renderInventory(filtered);
+}
+
+// --- OPERAÇÕES ADMIN MODAL ---
+
+function openAddModal() {
+    document.getElementById('form-item').reset();
+    document.getElementById('item-id').value = '';
+    document.getElementById('itemModalLabel').textContent = 'Adicionar Novo Item';
+    document.getElementById('item-quantidade').disabled = false; // Permite quantidade inicial
+    
+    const previewContainer = document.getElementById('image-preview-container');
+    if (previewContainer) previewContainer.classList.add('d-none');
+    
+    bootstrapItemModal.show();
+}
+
+function openEditModal(id) {
+    const item = localEstoque.find(i => i.id === id);
+    if (!item) return;
+    
+    document.getElementById('item-id').value = item.id;
+    document.getElementById('item-nome').value = item.nome;
+    document.getElementById('item-categoria').value = item.categoria;
+    document.getElementById('item-quantidade').value = item.quantidade;
+    document.getElementById('item-descricao').value = item.descricao || '';
+    
+    // Mostra a prévia da imagem existente se houver
+    const previewContainer = document.getElementById('image-preview-container');
+    const previewImg = document.getElementById('form-image-preview');
+    if (previewContainer && previewImg) {
+        if (item.imagem) {
+            previewImg.src = `/static/${item.imagem}`;
+            previewContainer.classList.remove('d-none');
+        } else {
+            previewContainer.classList.add('d-none');
+        }
+    }
+    
+    document.getElementById('itemModalLabel').textContent = 'Editar Item';
+    bootstrapItemModal.show();
+}
+
+async function handleItemSubmit(e) {
+    e.preventDefault();
+    
+    const id = document.getElementById('item-id').value;
+    const formData = new FormData();
+    
+    formData.append('nome', document.getElementById('item-nome').value.trim());
+    formData.append('categoria', document.getElementById('item-categoria').value.trim());
+    formData.append('quantidade', document.getElementById('item-quantidade').value);
+    formData.append('descricao', document.getElementById('item-descricao').value.trim());
+    
+    const fileInput = document.getElementById('item-imagem');
+    if (fileInput && fileInput.files.length > 0) {
+        formData.append('imagem', fileInput.files[0]);
+    }
+    
+    const url = id ? `/api/item/${id}` : '/api/item';
+    // Usamos POST para uploads de multipart/form-data devido à compatibilidade de envio com FormData
+    const method = 'POST'; 
+    
+    try {
+        const response = await fetch(url, {
+            method: method,
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            bootstrapItemModal.hide();
+            showGlobalAlert(id ? 'Item atualizado com sucesso!' : 'Novo item adicionado ao estoque!', 'success');
+            loadEstoque();
+        } else {
+            alert('Erro: ' + (data.error || 'Falha ao salvar item.'));
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Erro de conexão ao servidor.');
+    }
+}
+
+async function handleDelete(id, name) {
+    if (!confirm(`Tem certeza de que deseja excluir o item "${name}" permanentemente?`)) return;
+    
+    try {
+        const response = await fetch(`/api/item/${id}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            showGlobalAlert(`Item "${name}" excluído do estoque.`, 'warning');
+            loadEstoque();
+        } else {
+            alert('Erro: ' + (data.error || 'Falha ao deletar item.'));
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Erro de conexão ao deletar.');
+    }
+}
+
+// --- ABA 2: LOGICA DE RETIRADA DIRETA / RÁPIDA ---
+
+function prepareRetiradaTab() {
+    const select = document.getElementById('withdraw-item-select');
+    const qtyAvail = document.getElementById('withdraw-item-qty-avail');
+    const qtyInput = document.getElementById('withdraw-item-qty-input');
+    
+    // Reset inputs
+    qtyAvail.value = '';
+    qtyInput.value = '';
+    qtyInput.max = '';
+    
+    // Popula select com itens que tenham estoque > 0
+    select.innerHTML = '<option value="" disabled selected>Escolha um item do estoque...</option>';
+    localEstoque.forEach(item => {
+        if (item.quantidade > 0) {
+            const opt = document.createElement('option');
+            opt.value = item.id;
+            opt.textContent = `${item.nome} (${item.categoria})`;
+            select.appendChild(opt);
+        }
+    });
+}
+
+function updateWithdrawMaxQty() {
+    const select = document.getElementById('withdraw-item-select');
+    const qtyAvail = document.getElementById('withdraw-item-qty-avail');
+    const qtyInput = document.getElementById('withdraw-item-qty-input');
+    
+    const selectedId = parseInt(select.value);
+    const item = localEstoque.find(i => i.id === selectedId);
+    
+    if (item) {
+        qtyAvail.value = `${item.quantidade} unidades`;
+        qtyInput.max = item.quantidade;
+        qtyInput.placeholder = `Máx: ${item.quantidade}`;
+    }
+}
+
+async function handleDirectWithdrawal(e) {
+    e.preventDefault();
+    
+    const select = document.getElementById('withdraw-item-select');
+    const qtyInput = document.getElementById('withdraw-item-qty-input');
+    
+    const itemId = parseInt(select.value);
+    const quantity = parseInt(qtyInput.value);
+    
+    if (!itemId || isNaN(quantity) || quantity <= 0) {
+        alert('Selecione um item e insira uma quantidade válida.');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/retirada', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item_id: itemId, quantidade: quantity })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            showGlobalAlert('Retirada efetuada com sucesso!', 'success');
+            // Recarrega estoque e limpa formulário
+            await loadEstoque();
+            prepareRetiradaTab();
+            
+            // Ativa a aba de estoque de volta automaticamente
+            const estoqueTabButton = document.querySelector('#tab-estoque');
+            const tabObj = new bootstrap.Tab(estoqueTabButton);
+            tabObj.show();
+        } else {
+            alert('Erro: ' + (data.error || 'Falha ao registrar retirada.'));
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Erro ao enviar solicitação.');
+    }
+}
+
+// --- MODAL DE RETIRADA RAPIDA (Grade de cards) ---
+
+function openWithdrawModal(id, name, qty) {
+    document.getElementById('withdraw-item-id').value = id;
+    document.getElementById('withdraw-item-name').value = name;
+    document.getElementById('withdraw-item-avail').value = `${qty} unidades`;
+    
+    const qtyInput = document.getElementById('withdraw-qty');
+    qtyInput.value = '';
+    qtyInput.max = qty;
+    qtyInput.placeholder = `Máx: ${qty}`;
+    
+    bootstrapWithdrawModal.show();
+}
+
+async function handleQuickWithdrawalSubmit(e) {
+    e.preventDefault();
+    
+    const itemId = parseInt(document.getElementById('withdraw-item-id').value);
+    const quantity = parseInt(document.getElementById('withdraw-qty').value);
+    
+    try {
+        const response = await fetch('/api/retirada', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item_id: itemId, quantidade: quantity })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            bootstrapWithdrawModal.hide();
+            showGlobalAlert('Retirada efetuada com sucesso!', 'success');
+            loadEstoque();
+        } else {
+            alert('Erro: ' + (data.error || 'Falha ao registrar retirada.'));
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Erro ao processar retirada.');
+    }
+}
+
+// --- ABA 3: LOGICA DE HISTORICO ---
+
+async function loadHistorico() {
+    const tbody = document.getElementById('historico-tbody');
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="5" class="text-center text-secondary py-4">
+                <div class="spinner-border text-primary spinner-border-sm mb-2" role="status"></div>
+                <div>Buscando registros...</div>
+            </td>
+        </tr>
+    `;
+    
+    try {
+        const response = await fetch('/api/historico');
+        if (!response.ok) throw new Error();
+        
+        const historyData = await response.json();
+        
+        if (historyData.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-secondary py-4">
+                        Nenhuma movimentação registrada até o momento.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        tbody.innerHTML = '';
+        historyData.forEach(row => {
+            const tr = document.createElement('tr');
+            
+            // Formatar data e hora local
+            const dateObj = new Date(row.data_hora);
+            const formattedDate = dateObj.toLocaleString('pt-BR');
+            
+            // Formatacao da quantidade com sinal (+/-) e cores
+            let qtyHtml = '';
+            if (row.quantidade > 0) {
+                qtyHtml = `<span class="text-success fw-semibold">+${row.quantidade}</span>`;
+            } else {
+                qtyHtml = `<span class="text-danger fw-semibold">${row.quantidade}</span>`;
+            }
+            
+            // Badge para o Tipo de Entrada/Saída
+            let typeBadge = '';
+            if (row.tipo === 'Entrada') {
+                typeBadge = `<span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.75rem;"><i class="bi bi-plus-lg me-1"></i>Entrada</span>`;
+            } else if (row.tipo === 'Saída') {
+                typeBadge = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size: 0.75rem;"><i class="bi bi-dash-lg me-1"></i>Saída</span>`;
+            } else {
+                typeBadge = `<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="font-size: 0.75rem;"><i class="bi bi-trash3-fill me-1"></i>Exclusão</span>`;
+            }
+            
+            tr.innerHTML = `
+                <td>${formattedDate}</td>
+                <td>${row.usuario_email}</td>
+                <td>${row.item_nome}</td>
+                <td>${qtyHtml}</td>
+                <td>${typeBadge}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+        
+    } catch (error) {
+        console.error(error);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-danger py-4">
+                    <i class="bi bi-exclamation-octagon-fill"></i> Falha ao carregar registros do histórico.
+                </td>
+            </tr>
+        `;
+    }
+}
+</script>
+
+</body>
+</html>
