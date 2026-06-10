@@ -1,0 +1,121 @@
+**HTML**
+<script>
+const usuarioRadio = document.getElementById("usuario");
+const adminRadio = document.getElementById("admin");
+const cadastrarBtn = document.getElementById("cadastrar");
+
+// Controla a ativação do botão Cadastrar com base no tipo selecionado
+adminRadio.addEventListener("change", () => {
+    cadastrarBtn.disabled = !adminRadio.checked;
+});
+
+usuarioRadio.addEventListener("change", () => {
+    cadastrarBtn.disabled = usuarioRadio.checked;
+});
+
+
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.all.min.js"></script>
+    Swal.fire({
+
+  title: "Sweet!",
+  text: "Modal with a custom image.",
+  imageUrl: "https://unsplash.it/400/200",
+  imageWidth: 400,
+  imageHeight: 200,
+  imageAlt: "Custom image"
+});
+
+let timerInterval;
+Swal.fire({
+  title: "Auto close alert!",
+  html: "I will close in <b></b> milliseconds.",
+  timer: 2000,
+  timerProgressBar: true,
+  didOpen: () => {
+    Swal.showLoading();
+    const timer = Swal.getPopup().querySelector("b");
+    timerInterval = setInterval(() => {
+      timer.textContent = `${Swal.getTimerLeft()}`;
+    }, 100);
+  },
+  willClose: () => {
+    clearInterval(timerInterval);
+  }
+}).then((result) => {
+  /* Read more about handling dismissals below */
+  if (result.dismiss === Swal.DismissReason.timer) console.log("I was closed by the timer");
+});
+
+**CSS ESTOQUR**
+
+#navbar .nav-link {
+    color: white;
+    font-weight: 500;
+    position: relative;
+    transition: 0.3s;
+}
+
+#navbar .nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    width: 0%;
+    height: 2px;
+    background: #00d4ff;
+    transition: 0.3s;
+}
+
+#navbar .nav-link:hover {
+    color: #00d4ff;
+}
+
+#navbar .nav-link:hover::after {
+    width: 100%;
+}
+
+#navbar .nav-link.active {
+    color: #00d4ff;
+}
+
+**CSS INDEX**
+
+#login-box {
+    font-family: "Courier New", Courier, monospace;
+    color: #ff9500;
+    width: 300px;
+}
+
+#login-box h2 {
+    color: #000;
+    font-weight: bold;
+}
+
+#login-box button {
+    background-color: #6c63ff;
+}
+
+#login-box button:hover {
+    background-color: #ff9500;
+}
+
+#login-box .btn-success {
+    background-color: #192a6b;
+    border: none;
+    font-weight: bold;
+}
+
+#login-box .btn-success:hover {
+    background-color: #ff9500;
+}
+
+#login-box .btn-secondary {
+    background-color: #6c63ff;
+    border: none;
+}
+
+#login-box .btn-secondary:hover {
+    background-color: #ff9500;
+}
+هل تريد الاستمرار
