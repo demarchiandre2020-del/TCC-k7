@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movimentacao</title>
+    <link rel="icon" type="image/png" href="static/icone-senai.png">
+    <link rel="stylesheet" href="static/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+</head>
+<body class="geral">
+
+    <!--############################# AQUI COMEÇA A NAVBAR #################################-->
+
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="estoque.html">Home</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="cadastro.html">Cadastro</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="movimentacao.html">Movimentação</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+    <br>
+
+    <!--############################# AQUI TERMINA A NAVBAR #################################-->
+    <!-- AQUI COMEÇA O FORMULARIO PARA ADICIONAR ITENS NA APLICACAI -->
+    <div id="form_cadastro">
+        <form action="/movimento_concluido.html" method="POST">
+
+            <select class="form-select" aria-label="Default select example" name="selecao">
+              <option selected>Selecione o tipo da movimentação:</option>
+              <option value="1">Entrada</option>
+              <option value="2">Saída</option>
+            </select>
+
+            <br>
+
+            <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Nome do item:</span>
+            <input type="text" class="form-control" placeholder="Nome" aria-label="Username" aria-describedby="basic-addon1" name="nome_item">
+            </div>
+
+            <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Quantidade:</span>
+            <input type="text" class="form-control" placeholder="Descrição" aria-label="Username" aria-describedby="basic-addon1" name="qtde">
+            </div>
+
+            <button type="submit" class="btn btn-success">Movimentar</button>
+        </form>
+    </div>
+</body>
+</html>

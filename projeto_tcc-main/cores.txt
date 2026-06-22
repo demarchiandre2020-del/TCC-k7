@@ -1,0 +1,3 @@
+azul: #182a6a
+laranja: #ff9501
+cinzinha: #e9edf0
